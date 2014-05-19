@@ -24,7 +24,7 @@
     }, 20);
   });
 
-  window.document.addEventListener('DOMContentLoaded', function() {
+  var DOMContentLoadedFn = function() {
     // mark all values that are present when the DOM is ready.
     // We don't need to trigger a change event here,
     // as js libs start with those values already being set!
@@ -35,7 +35,14 @@
     window.setTimeout(function() {
       $rootElement.find('input').checkAndTriggerAutoFillEvent();
     }, 200);
-  }, false);
+  };
+
+  if (window.document.addEventListener) {
+    window.document.addEventListener('DOMContentLoaded', DOMContentLoadedFn, false);
+  }
+  else { // use jQuery 'ready' old crappy browsers without addEventListener (IE8)
+    $.ready(DOMContentLoadedFn);
+  }
 
   return;
 
@@ -89,10 +96,17 @@
   }
 
   function addGlobalEventListener(eventName, listener) {
-    // Use a capturing event listener so that
-    // we also get the event when it's stopped!
-    // Also, the blur event does not bubble.
-    rootElement.addEventListener(eventName, onEvent, true);
+    // Given the possibility of a polyfill for IE8 like https://gist.github.com/jonathantneal/3748027
+    // that does not support `createEvent`, in order to make this library compatible with IE8
+    // we need to check the availability of `createEvent` and not `addEventListener`
+    if (!window.document.createEvent) {
+      rootElement.attachEvent(eventName, onEvent);
+    } else {
+      // Use a capturing event listener so that
+      // we also get the event when it's stopped!
+      // Also, the blur event does not bubble.
+      rootElement.addEventListener(eventName, onEvent, true);
+    }
 
     function onEvent(event) {
       var target = event.target;
@@ -121,10 +135,13 @@
   }
 
   function triggerChangeEvent(element) {
-    var doc = window.document;
-    var event = doc.createEvent("HTMLEvents");
-    event.initEvent("change", true, true);
-    element.dispatchEvent(event);
+    if(!window.document.createEvent){
+      rootElement.change++;
+    } else {
+      var event = window.document.createEvent('HTMLEvents');
+      event.initEvent('change', true, true);
+      element.dispatchEvent(event);
+      }
   }
 
 
