@@ -150,7 +150,4 @@
       element.dispatchEvent(event);
       }
   }
-
-
-
 })(window);
