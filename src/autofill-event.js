@@ -24,6 +24,13 @@
     }, 20);
   });
 
+  // Handle case when pressing Enter key submits the form without firing blur event
+  addGlobalEventListener('keydown', function(target, e) {
+    if (typeof e !== 'undefined' && e.keyCode === 13) {
+      findParentForm(target).find('input').checkAndTriggerAutoFillEvent();
+    }
+  });
+
   var DOMContentLoadedFn = function() {
     // mark all values that are present when the DOM is ready.
     // We don't need to trigger a change event here,
@@ -110,7 +117,7 @@
 
     function onEvent(event) {
       var target = event.target;
-      listener(target);
+      listener(target, event);
     }
   }
 
